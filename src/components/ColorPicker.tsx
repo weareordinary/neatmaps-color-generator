@@ -31,7 +31,7 @@ export function ColorPicker({
           <Button
             variant="outline"
             className="h-12 w-12 p-0 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-            onClick={() => onRemove(className)}
+            onClick={() => onRemove && onRemove(className)}
           >
             <Trash2 className="h-4 w-4"/>
           </Button>

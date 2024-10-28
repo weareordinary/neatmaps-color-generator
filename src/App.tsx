@@ -71,50 +71,6 @@ const extractColorsFromCoolorsUrl = (url: string): string[] | null => {
   }
 };
 
-type ConsoleMessage = {
-  type: 'log' | 'error' | 'warn' | 'info';
-  message: string;
-  timestamp: Date;
-};
-
-const createConsoleProxy = (callback: (message: ConsoleMessage) => void) => {
-  const originalConsole = { ...console };
-
-  const proxyHandler = (type: ConsoleMessage['type']) => {
-    return (...args: unknown[]) => {
-      // Call the original console method
-      const consoleObj: Record<string, (...args: unknown[]) => void> = originalConsole;
-      consoleObj[type](...args);
-
-      // Create a message object
-      const message: ConsoleMessage = {
-        type,
-        message: args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' '),
-        timestamp: new Date()
-      };
-
-      // Call the callback with the message
-      callback(message);
-    };
-  };
-
-  // Proxy the console methods
-  console.log = proxyHandler('log');
-  console.error = proxyHandler('error');
-  console.warn = proxyHandler('warn');
-  console.info = proxyHandler('info');
-
-  // Return a cleanup function
-  return () => {
-    console.log = originalConsole.log;
-    console.error = originalConsole.error;
-    console.warn = originalConsole.warn;
-    console.info = originalConsole.info;
-  };
-};
-
 export default function App() {
   const [colors, setColors] = useState(initialColors);
   const [bgColor, setBgColor] = useState(initialBgColor);
@@ -156,7 +112,7 @@ export default function App() {
     setColors((prev) => ({ ...prev, [className]: color }));
   };
 
-  const handleBgColorChange = (className: string, color: string) => {
+  const handleBgColorChange = (_className: string, color: string) => {
     setBgColor({ "cls-bg": color });
   };
 
