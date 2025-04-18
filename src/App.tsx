@@ -108,6 +108,69 @@ export default function App() {
 
   }, []);
 
+  useEffect(() => {
+    const handleClipboardChange = async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text.includes("coolors.co/palette/")) {
+          const colors = extractColorsFromCoolorsUrl(text);
+          if (colors) {
+            const newColors = {} as ColorState;
+            colors.forEach((color, index) => {
+              newColors[`cls-${index + 1}` as keyof ColorState] = `#${color}`;
+            });
+            setColors(newColors);
+
+            const paths = document.querySelectorAll("#Layer_1 path");
+            paths.forEach(path => {
+              if (path instanceof SVGPathElement) {
+                for (let i = 1; i <= 10; i++) {
+                  path.classList.remove(`cls-${i}`);
+                }
+              }
+            });
+
+            const pathsArray = Array.from(paths);
+            const colorClasses = Object.keys(newColors);
+            const colorAssignments: string[] = [];
+            
+            colorClasses.forEach((colorClass) => {
+              const count = Math.ceil(pathsArray.length / colorClasses.length);
+              colorAssignments.push(...Array(count).fill(colorClass));
+            });
+
+            colorAssignments.splice(pathsArray.length);
+            const shuffledColors = colorAssignments.sort(() => Math.random() - 0.5);
+            pathsArray.forEach((path, index) => {
+              if (path instanceof SVGPathElement) {
+                path.setAttribute("class", shuffledColors[index]);
+              }
+            });
+
+            toast({
+              title: "Colors Imported",
+              description: `Successfully imported ${colors.length} colors from Coolors.`,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to read clipboard contents: ", err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleClipboardChange();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const handleColorChange = (className: string, color: string) => {
     setColors((prev) => ({ ...prev, [className]: color }));
   };
